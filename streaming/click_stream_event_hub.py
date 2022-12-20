@@ -48,14 +48,13 @@ df = ( spark.readStream
           .load(bronzeTablePath)
      )
 
-#Add a marker column to indicate the data processing stage#
-# df = df.withColumn("stage", lit("bronze"))
-
+#Create key and value from dataframe columns for publishing to Event Hub
 df = ( df.withColumn("key", col("curr"))
        .withColumn("value", to_json(struct("prev","curr", "type", "n"))))
 
 df.display()
-#Write stream to Azure Event Hub
+
+#Write stream to Event Hub
 ( df.writeStream 
   .format("kafka")
   .option("kafka.bootstrap.servers", f"{EH_NS_NAME}.servicebus.windows.net:9093")
